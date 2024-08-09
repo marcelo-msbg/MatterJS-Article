@@ -1,25 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
-import { Engine, Render, World, Bodies, Runner } from 'matter-js'
+import { BaseSyntheticEvent, useEffect, useRef, useState } from 'react'
+import { Engine, Render, World, Bodies, Runner, Composite, Composites } from 'matter-js'
 
 function App() {
   const [count, setCount] = useState(0)
 
-  const window = useRef();
+  const canvas = useRef<HTMLDivElement>();
   const engine = useRef(Engine.create());
   const render = useRef();
   const runner = useRef();
+  const posX = useRef<number|null>(null);
+  const posY = useRef<number|null>(null);
+
+  const mouseTimeoutRef = useRef<number|null>(null);
 
   const initializeRenderer = () => {
-    if(!window.current) return;
+    if(!canvas.current) return;
     
     // Height and width of the screen that will be used for matterJs
-    const height = window.current.offsetHeight;
-    const width = window.current.offsetWidth;
+    const height = canvas.current.offsetHeight;
+    const width = canvas.current.offsetWidth;
 
     console.log(height + " " + width);
 
     render.current = Render.create({
-      element: window.current, 
+      element: canvas.current, 
       engine: engine.current,
       options: {
         width: width,
@@ -31,8 +35,9 @@ function App() {
 
     // Defining boddies. The order is: x, y, height, width. (y is from top to down)
     World.add(engine.current.world, [
-      Bodies.rectangle(width / 2, height/2, 20, 20, { friction: 0.00001, restitution: 0.7, density: 0.1 }),
-      Bodies.rectangle(width / 2, height, width, 20, { isStatic: true }), //Floor
+      Bodies.rectangle(width / 2, height, width, 20, { isStatic: true, friction: 1 }), //Floor
+      Bodies.rectangle(width, height/2, 20, height, { isStatic: true, friction: 0.1 }), //RightSide
+      Bodies.rectangle(0, height/2, 20, height, { isStatic: true, friction: 0.1 }), //LeftSide
     ])
 
     // run the engine
@@ -56,19 +61,58 @@ function App() {
     render.current.textures = {};
   }
 
+  const handleMouseDown = () => {
+
+    mouseTimeoutRef.current = setInterval(() => {
+      addGrain();
+    }, 50) //Add a new grain at every 500 ms
+  }
+
+  const handleMouseUp = () => {
+    if(mouseTimeoutRef.current) clearInterval(mouseTimeoutRef.current);
+  }
+
+  const addGrain = () => {
+    //Add a new grain at the current position.
+    World.add(engine.current.world, [
+      Bodies.rectangle(posX.current, posY.current, 25, 25, { 
+        friction: 1, restitution: 1, density: 0.5,
+        chamfer: 0.2,
+        angle: Math.PI*Math.random(),
+        render: {
+          fillStyle: '#ff5555',
+          strokeStyle: '#444444',
+          lineWidth: 1
+        }}),
+    ]);
+  }
+
+  //Just update the mouse position.
+  const updateMousePosition = (event:MouseEvent) => {
+    if(!canvas.current) return;
+    posX.current = event.clientX - canvas.current.getBoundingClientRect().x;
+    posY.current = event.clientY - canvas.current.getBoundingClientRect().y;
+  }
 
   useEffect(() => {
     console.log("Initilizing");
     initializeRenderer();
 
+    window.addEventListener("mousemove", updateMousePosition);
+
     return () => {
       clearRenderer();
+      window.removeEventListener("mousemove", updateMousePosition);
     }
   },[])
 
   return (
     <div className="fixed w-full h-full bg-slate-700 flex justify-center items-center">
-      <div ref={window} className="bg-white h-[85%] w-[85%] flex justify-center items-center rounded-[12px] border-[3px] border-slate-800">
+      <div ref={canvas} 
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      
+      className="bg-white h-[85%] w-[85%] flex justify-center items-center rounded-[12px] border-[3px] border-slate-800">
         
       </div>
     </div>
