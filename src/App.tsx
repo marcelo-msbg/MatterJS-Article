@@ -11,6 +11,8 @@ function App() {
   const posX = useRef<number|null>(null);
   const posY = useRef<number|null>(null);
 
+  const colorCounter = useRef<number>(0); //Used for the color
+
   const mouseTimeoutRef = useRef<number|null>(null);
 
   const initializeRenderer = () => {
@@ -28,16 +30,16 @@ function App() {
       options: {
         width: width,
         height: height,
-        wireframes: false, //Just for testing
-        background: 'transparent'
+        wireframes: false, //Just for testing. Remove all colors and details
+        background: '#001010'
       }
     });
 
     // Defining boddies. The order is: x, y, height, width. (y is from top to down)
     World.add(engine.current.world, [
-      Bodies.rectangle(width / 2, height, width, 20, { isStatic: true, friction: 1 }), //Floor
-      Bodies.rectangle(width, height/2, 20, height, { isStatic: true, friction: 0.1 }), //RightSide
-      Bodies.rectangle(0, height/2, 20, height, { isStatic: true, friction: 0.1 }), //LeftSide
+      Bodies.rectangle(width / 2, height, width, 20, { isStatic: true, friction: 10 }), //Floor
+      Bodies.rectangle(width, height/2, 20, height, { isStatic: true, friction: 10 }), //RightSide
+      Bodies.rectangle(0, height/2, 20, height, { isStatic: true, friction: 10 }), //LeftSide
     ])
 
     // run the engine
@@ -63,9 +65,12 @@ function App() {
 
   const handleMouseDown = () => {
 
+    colorCounter.current = 0; //Reset the counter;
+
     mouseTimeoutRef.current = setInterval(() => {
       addGrain();
-    }, 50) //Add a new grain at every 500 ms
+      colorCounter.current++;
+    }, 20) //Add a new grain at every 500 ms
   }
 
   const handleMouseUp = () => {
@@ -75,12 +80,16 @@ function App() {
   const addGrain = () => {
     //Add a new grain at the current position.
     World.add(engine.current.world, [
-      Bodies.rectangle(posX.current, posY.current, 25, 25, { 
-        friction: 1, restitution: 1, density: 0.5,
-        chamfer: 0.2,
-        angle: Math.PI*Math.random(),
+      //Bodies.rectangle(posX.current, posY.current, 25, 25, { 
+      Bodies.circle(posX.current, posY.current, 5 + Math.random()*8, { 
+        friction: 10, //High friction to maintain then together
+        restitution: 0.01, //Low bounce to prevent scattering
+        density: 0.001,
+        //chamfer: 0.2,
+        //angle: Math.PI*Math.random(),
         render: {
-          fillStyle: '#ff5555',
+          fillStyle: `rgb(${150 + 50*Math.cos(2*Math.PI*0.01*colorCounter.current)}, 
+            ${150 + 50*Math.cos(2*Math.PI*0.05*colorCounter.current)}, ${150})`,
           strokeStyle: '#444444',
           lineWidth: 1
         }}),
