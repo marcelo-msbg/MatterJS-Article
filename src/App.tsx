@@ -37,9 +37,21 @@ function App() {
 
     // Defining boddies. The order is: x, y, height, width. (y is from top to down)
     World.add(engine.current.world, [
-      Bodies.rectangle(width / 2, height, width, 20, { isStatic: true, friction: 10 }), //Floor
-      Bodies.rectangle(width, height/2, 20, height, { isStatic: true, friction: 10 }), //RightSide
-      Bodies.rectangle(0, height/2, 20, height, { isStatic: true, friction: 10 }), //LeftSide
+      Bodies.rectangle(width / 2, height + 10, width, 20, { isStatic: true, friction: 10 }), //Floor
+      Bodies.rectangle(width+10, height/2, 20, height, { isStatic: true, friction: 10 }), //RightSide
+      Bodies.rectangle(-10, height/2, 20, height, { isStatic: true, friction: 10 }), //LeftSide
+
+      Bodies.rectangle(
+        width*0.4, height*0.5, width*0.3, 20,
+        {
+            isStatic: true, // The ramp should be static so it doesn't fall
+            angle: (40/180)*Math.PI, // Incline the ramp by setting its angle
+            chamfer: 0.5,
+            render: {
+                fillStyle: '#AAAAAA' // Color of the ramp
+            }
+        }
+    )
     ])
 
     // run the engine
@@ -86,7 +98,6 @@ function App() {
         restitution: 0.01, //Low bounce to prevent scattering
         density: 0.001,
         //chamfer: 0.2,
-        //angle: Math.PI*Math.random(),
         render: {
           fillStyle: `rgb(${150 + 50*Math.cos(2*Math.PI*0.01*colorCounter.current)}, 
             ${150 + 50*Math.cos(2*Math.PI*0.05*colorCounter.current)}, ${150})`,
@@ -116,13 +127,21 @@ function App() {
   },[])
 
   return (
-    <div className="fixed w-full h-full bg-slate-700 flex justify-center items-center">
+    <div className="fixed w-full h-full bg-slate-700 flex flex-col justify-center items-center">
+      <div className="w-full h-[10%] flex flex-row justify-center items-center">
+        <button className="bg-slate-200 px-[8px] py-[4px] rounded-[5px]"
+          onClick={() => {
+            clearRenderer();
+            initializeRenderer();
+          }}
+        >
+          Clear Canvas
+        </button>
+      </div>
       <div ref={canvas} 
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      
-      className="bg-white h-[85%] w-[85%] flex justify-center items-center rounded-[12px] border-[3px] border-slate-800">
-        
+      className="bg-white h-[85%] w-[85%] flex justify-center items-center rounded-[12px] border-[3px] border-slate-800 overflow-hidden">
       </div>
     </div>
   )
