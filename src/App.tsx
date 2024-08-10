@@ -1,5 +1,5 @@
-import { BaseSyntheticEvent, useEffect, useRef, useState } from 'react'
-import { Engine, Render, World, Bodies, Runner, Composite, Composites } from 'matter-js'
+import { useEffect, useRef } from 'react'
+import { Engine, Render, World, Bodies, Runner } from 'matter-js'
 
 function App() {
 
